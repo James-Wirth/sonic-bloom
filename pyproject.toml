@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sonic-bloom"
-version = "0.1.1"
+version = "0.1.2"
 description = "A little terminal app that controls Apple Music on macOS via natural language"
 readme = "README.md"
 license = { text = "MIT" }
