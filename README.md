@@ -26,10 +26,8 @@ A little terminal app that controls Apple Music on macOS via natural language.
 Requires macOS, Python 3.11+, and Apple Music.
 
 ```sh
-git clone https://github.com/jameswirth/sonic-bloom.git
-cd sonic-bloom
-pip install -e .
-python -m sonic_bloom
+pip install sonic-bloom
+sonic-bloom
 ```
 
 You'll be prompted to choose a provider (Anthropic, OpenAI, or Ollama) and enter an API key.
