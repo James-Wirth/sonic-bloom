@@ -24,6 +24,7 @@ class ToolStart:
 @dataclass(slots=True)
 class ToolEnd:
     name: str
+    result: dict | None = None
     error: str | None = None
 
 @dataclass(slots=True)
@@ -87,7 +88,7 @@ class MusicAgent:
                 yield ToolStart(name=call.name)
                 try:
                     r = execute(call.name, call.input)
-                    yield ToolEnd(name=call.name)
+                    yield ToolEnd(name=call.name, result=r)
                 except Exception as e:
                     r = {"error": str(e)}
                     yield ToolEnd(name=call.name, error=str(e))

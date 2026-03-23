@@ -40,10 +40,18 @@ def tool_label(name: str) -> str:
     return _TOOL_LABELS.get(name, name.replace("_", " ").title())
 
 
-def stream_response(console: Console, agent: MusicAgent, user_input: str) -> tuple[str, set[str]]:
-    """Stream agent response to the console. Returns (response_text, tools_used)."""
+def _extract_track(tool_name: str, result: dict | None) -> dict | None:
+    """Extract track info dict from a playback tool result, if present."""
+    if not result or tool_name not in PLAYBACK_TOOLS:
+        return None
+    return result.get("track") or result.get("now_playing")
+
+
+def stream_response(console: Console, agent: MusicAgent, user_input: str) -> tuple[str, set[str], dict | None]:
+    """Stream agent response to the console. Returns (response_text, tools_used, playback_track)."""
     accumulated = ""
     tools_used: set[str] = set()
+    playback_track: dict | None = None
     gen = agent.chat(user_input)
     event: AgentEvent | None = next(gen, None)
 
@@ -68,7 +76,8 @@ def stream_response(console: Console, agent: MusicAgent, user_input: str) -> tup
                         console.print(Text(accumulated.strip(), style="dim italic"))
                         accumulated = ""
                     live.update(Spinner("dots", text=f"[dim]{label}...[/]"))
-                case ToolEnd():
+                case ToolEnd(name=name, result=result):
+                    playback_track = _extract_track(name, result) or playback_track
                     live.update(Spinner("dots", text="[dim]Thinking...[/]"))
                 case AskUser(question=question, options=options):
                     live.stop()
@@ -91,24 +100,31 @@ def stream_response(console: Console, agent: MusicAgent, user_input: str) -> tup
         if tools_used:
             console.print()
         console.print(Markdown(accumulated))
-    return accumulated, tools_used
+    return accumulated, tools_used, playback_track
 
 
-def print_status(console: Console):
-    """Print current player status."""
+def print_status(console: Console, track_data: dict | None = None):
+    """Print current player status. Uses track_data if provided, else queries Music.app."""
     try:
         state = get_music().player_state()
-        track = state.current_track
-        if track:
-            icon = ">" if state.state == "playing" else "||" if state.state == "paused" else "[]"
-            console.print(f"  {icon} [bold]{track.name}[/] -- {track.artist} [dim]({track.album})[/]")
-            details = [
-                f"vol {state.volume}",
-                f"shuffle {'on' if state.shuffle else 'off'}",
-                f"repeat {state.repeat}",
-            ]
-            console.print(f"    [dim]{' . '.join(details)}[/]")
+        if track_data:
+            name = track_data.get("name", "Unknown")
+            artist = track_data.get("artist", "Unknown")
+            album = track_data.get("album", "")
+        elif state.current_track:
+            name = state.current_track.name
+            artist = state.current_track.artist
+            album = state.current_track.album
         else:
             console.print("  [dim]No track playing[/]")
+            return
+        icon = ">" if state.state == "playing" else "||" if state.state == "paused" else "[]"
+        console.print(f"  {icon} [bold]{name}[/] -- {artist} [dim]({album})[/]")
+        details = [
+            f"vol {state.volume}",
+            f"shuffle {'on' if state.shuffle else 'off'}",
+            f"repeat {state.repeat}",
+        ]
+        console.print(f"    [dim]{' . '.join(details)}[/]")
     except MusicAppError as e:
         console.print(f"  [red]{e}[/]")

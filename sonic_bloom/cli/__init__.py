@@ -65,14 +65,14 @@ class SonicBloomCLI:
 
             self.console.print()
             try:
-                response_text, tools_used = stream_response(self.console, self.agent, user_input)
+                response_text, tools_used, playback_track = stream_response(self.console, self.agent, user_input)
             except Exception as e:
                 self.console.print(f"  [red]Error: {e}[/]")
                 self.console.print()
                 continue
             self.console.print()
-            if tools_used & PLAYBACK_TOOLS:
-                print_status(self.console)
+            if playback_track:
+                print_status(self.console, track_data=playback_track)
                 self.console.print()
 
             self.interaction_count += 1
