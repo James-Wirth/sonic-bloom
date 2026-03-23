@@ -12,6 +12,7 @@ from sonic_bloom.bridge import get_music
 from sonic_bloom.bridge.scripting_bridge import MusicAppError
 from sonic_bloom.cli.display import print_status
 from sonic_bloom.history import recent_plays
+from sonic_bloom.tools.music_search import _itunes_search
 
 CommandHandler = Callable[[Console, str], None]
 COMMANDS: dict[str, CommandHandler] = {}
@@ -186,15 +187,25 @@ def _search(console: Console, args: str):
     if not args:
         console.print("  [red]Usage: /search <query>[/]")
         return
+
     tracks = get_music().search_library(args, limit=10)
+    source = "library"
     if not tracks:
-        console.print(f"  [dim]No results for: {args}[/]")
-        return
+        itunes_results = _itunes_search(args, limit=10)
+        if not itunes_results:
+            console.print(f"  [dim]No results for: {args}[/]")
+            return
+        source = "itunes"
 
     table = Table(show_header=False, box=None, padding=(0, 2))
     table.add_column(style="bold")
     table.add_column()
     table.add_column(style="dim")
-    for t in tracks:
-        table.add_row(t.name, t.artist, t.album)
+    if source == "library":
+        for t in tracks:
+            table.add_row(t.name, t.artist, t.album)
+    else:
+        for r in itunes_results:
+            table.add_row(r["name"], r["artist"], r["album"])
+    console.print(f"  [dim]Source: {source}[/]")
     console.print(Padding(table, (0, 0, 0, 2)))
