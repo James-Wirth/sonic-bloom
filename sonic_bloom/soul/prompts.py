@@ -32,9 +32,29 @@ to let them choose. For straightforward requests, just act — don't over-ask.\
 """
 
 
+def _player_context() -> str:
+    from sonic_bloom.bridge import get_music
+    from sonic_bloom.bridge.scripting_bridge import MusicAppError
+
+    try:
+        state = get_music().player_state()
+        track = state.current_track
+        if track:
+            return (
+                f"\nNow playing: {track.name} by {track.artist} "
+                f"({track.album}). State: {state.state}, "
+                f"volume: {state.volume}, shuffle: {'on' if state.shuffle else 'off'}, "
+                f"repeat: {state.repeat}."
+            )
+        return f"\nPlayer state: {state.state}. Nothing currently playing."
+    except MusicAppError:
+        return "\nMusic.app is not running."
+
+
 def build_system(soul_content: str | None = None) -> str:
     parts = [BASE_PROMPT]
     parts.append(f"\nCurrent date/time: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    parts.append(_player_context())
     if soul_content:
         parts.append(f"\nUser preferences:\n{soul_content}")
     return "\n".join(parts)
