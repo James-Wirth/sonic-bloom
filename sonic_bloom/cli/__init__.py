@@ -7,30 +7,31 @@ import queue
 from rich.console import Console
 
 from sonic_bloom.agent import MusicAgent
-from sonic_bloom.bridge import get_music
 from sonic_bloom.bridge.events import MusicEvent
-from sonic_bloom.bridge.scripting_bridge import MusicAppError
+from sonic_bloom.cli.commands import handle_command
 from sonic_bloom.cli.display import stream_response, print_status
 from sonic_bloom.history import record_play
-
-SHORTCUTS = {
-    "p": "play_pause",
-    "n": "next_track",
-    "b": "previous_track",
-    "s": "status",
-}
 
 HELP_TEXT = """\
 
   [bold]Sonic Bloom[/] -- AI music assistant for Apple Music
 
-  [dim]Shortcuts[/]
-    [bold cyan]p[/]  play / pause       [bold cyan]n[/]  next track
-    [bold cyan]b[/]  previous track     [bold cyan]s[/]  now playing
+  [dim]Playback[/]
+    [bold cyan]/play[/]     resume          [bold cyan]/pause[/]    pause
+    [bold cyan]/next[/]     next track      [bold cyan]/prev[/]     previous track
+    [bold cyan]/status[/]   now playing
 
-  [dim]Commands[/]
-    [bold cyan]help[/]   show this message
-    [bold cyan]quit[/]   exit [dim](also: exit, q, ctrl-c)[/]
+  [dim]Settings[/]
+    [bold cyan]/volume[/]   [dim]<0-100>[/]        [bold cyan]/shuffle[/]  [dim][on|off][/]
+    [bold cyan]/repeat[/]   [dim][off|one|all][/]
+
+  [dim]Info[/]
+    [bold cyan]/history[/]  [dim][count][/]        [bold cyan]/search[/]   [dim]<query>[/]
+    [bold cyan]/playlist[/] [dim][name][/]
+
+  [dim]General[/]
+    [bold cyan]/help[/]    show this message
+    [bold cyan]quit[/]     exit [dim](also: exit, q, ctrl-c)[/]
 
   Anything else is sent to the AI assistant.
 """
@@ -56,11 +57,11 @@ class SonicBloomCLI:
                 continue
             if user_input.lower() in ("quit", "exit", "q"):
                 return
-            if user_input.lower() == "help":
+            if user_input.lower() in ("help", "/help"):
                 self.console.print(HELP_TEXT)
                 continue
-            if user_input.lower() in SHORTCUTS:
-                self._handle_shortcut(user_input.lower())
+            if user_input.startswith("/"):
+                handle_command(self.console, user_input)
                 self.console.print()
                 continue
 
@@ -81,29 +82,6 @@ class SonicBloomCLI:
             self.interaction_log.append(f"User: {user_input}")
             if response_text:
                 self.interaction_log.append(f"Assistant: {response_text}")
-
-    def _handle_shortcut(self, key: str):
-        m = get_music()
-        try:
-            match key:
-                case "p":
-                    new_state = m.playpause()
-                    icon = "▶" if new_state == "playing" else "⏸"
-                    self.console.print(f"  [dim]{icon} {new_state}[/]")
-                case "n":
-                    m.next_track()
-                    track = m.current_track()
-                    if track:
-                        self.console.print(f"  [dim]⏭ {track.name} — {track.artist}[/]")
-                case "b":
-                    m.previous_track()
-                    track = m.current_track()
-                    if track:
-                        self.console.print(f"  [dim]⏮ {track.name} — {track.artist}[/]")
-                case "s":
-                    print_status(self.console)
-        except MusicAppError as e:
-            self.console.print(f"  [red]{e}[/]")
 
     def _drain_events(self):
         last: MusicEvent | None = None
