@@ -64,6 +64,12 @@ def _read_track(sb_track) -> Track:
         except Exception:
             pass
 
+        loved = False
+        try:
+            loved = bool(sb_track.loved())
+        except Exception:
+            pass
+
         return Track(
             name=str(sb_track.name() or "Unknown"),
             artist=str(sb_track.artist() or "Unknown"),
@@ -73,7 +79,7 @@ def _read_track(sb_track) -> Track:
             genre=str(sb_track.genre() or ""),
             year=int(sb_track.year() or 0),
             track_number=int(sb_track.trackNumber() or 0),
-            loved=bool(sb_track.loved()),
+            loved=loved,
             store_id=store_id,
         )
     except Exception as e:
