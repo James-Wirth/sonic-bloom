@@ -33,14 +33,14 @@ def read_key() -> str:
 
 def select(console: Console, question: str, options: list[str]) -> str:
     """Show an interactive menu and return the selected option."""
-    console.print(f"\n  [bold]{question}[/]")
+    console.print(f"\n  [bold yellow]?[/] [bold]{question}[/]")
     selected = 0
     n = len(options)
 
     def _draw():
         for i, opt in enumerate(options):
             if i == selected:
-                console.print(f"    [bold cyan]> {opt}[/]")
+                console.print(f"    [bold cyan]› {opt}[/]")
             else:
                 console.print(f"      [dim]{opt}[/]")
 
@@ -66,6 +66,6 @@ def select(console: Console, question: str, options: list[str]) -> str:
 
     sys.stdout.write(f"\033[{n}A\033[J")
     sys.stdout.flush()
-    console.print(f"    [bold cyan]> {options[selected]}[/]")
+    console.print(f"    [bold cyan]› {options[selected]}[/]")
     console.print()
     return options[selected]

@@ -88,18 +88,18 @@ class SonicBloomCLI:
             match key:
                 case "p":
                     new_state = m.playpause()
-                    icon = ">" if new_state == "playing" else "||"
+                    icon = "▶" if new_state == "playing" else "⏸"
                     self.console.print(f"  [dim]{icon} {new_state}[/]")
                 case "n":
                     m.next_track()
                     track = m.current_track()
                     if track:
-                        self.console.print(f"  [dim]>> {track.name} -- {track.artist}[/]")
+                        self.console.print(f"  [dim]⏭ {track.name} — {track.artist}[/]")
                 case "b":
                     m.previous_track()
                     track = m.current_track()
                     if track:
-                        self.console.print(f"  [dim]<< {track.name} -- {track.artist}[/]")
+                        self.console.print(f"  [dim]⏮ {track.name} — {track.artist}[/]")
                 case "s":
                     print_status(self.console)
         except MusicAppError as e:
