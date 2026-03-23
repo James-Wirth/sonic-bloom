@@ -71,11 +71,24 @@ class SonicBloom:
             self.console.print(f"\n  [bold]No API key configured for {self.config.provider}.[/]")
             self.console.print(f"  Set the appropriate env var or add it to [dim]{CONFIG_DIR / 'config.toml'}[/]\n")
             return None
+        if self.config.provider == "ollama" and not self._check_ollama():
+            return None
         try:
             return make_provider(self.config)
         except Exception as e:
             self.console.print(f"  [red]Could not initialize {self.config.provider}: {e}[/]")
             return None
+
+    def _check_ollama(self) -> bool:
+        import httpx
+        base = self.config.base_url or "http://localhost:11434"
+        try:
+            httpx.get(f"{base}/api/tags", timeout=3)
+            return True
+        except httpx.ConnectError:
+            self.console.print(f"  [red]Cannot connect to Ollama at {base}.[/]")
+            self.console.print("  [dim]Start Ollama with: ollama serve[/]\n")
+            return False
 
     def _maybe_update_soul(self, cli: SonicBloomCLI, provider, force: bool = False):
         if not cli.interaction_log:

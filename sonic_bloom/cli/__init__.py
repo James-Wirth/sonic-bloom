@@ -64,7 +64,12 @@ class SonicBloomCLI:
                 continue
 
             self.console.print()
-            response_text, tools_used = stream_response(self.console, self.agent, user_input)
+            try:
+                response_text, tools_used = stream_response(self.console, self.agent, user_input)
+            except Exception as e:
+                self.console.print(f"  [red]Error: {e}[/]")
+                self.console.print()
+                continue
             self.console.print()
             if tools_used & PLAYBACK_TOOLS:
                 print_status(self.console)

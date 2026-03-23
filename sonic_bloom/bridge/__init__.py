@@ -12,4 +12,6 @@ def get_music() -> MusicApp:
     global _music
     if _music is None:
         _music = MusicApp()
+    elif not _music.is_running:
+        _music = MusicApp()
     return _music
