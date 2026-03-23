@@ -27,8 +27,10 @@ Tool strategy:
 - If a tool reports an error (e.g. playback didn't start), tell the user honestly. Don't \
   pretend it worked.
 
-Clarification: If multiple results match or the request is genuinely ambiguous, use ask_user \
-to let them choose. For straightforward requests, just act — don't over-ask.\
+Clarification: When you have multiple tracks to offer the user, ALWAYS use ask_user with the \
+options parameter — never present numbered lists in your text response. Format each option as \
+"Song Name – Artist". For straightforward requests with a clear single match, just act — \
+don't over-ask.\
 """
 
 

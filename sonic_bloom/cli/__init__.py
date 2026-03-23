@@ -10,7 +10,8 @@ from sonic_bloom.agent import MusicAgent
 from sonic_bloom.bridge import get_music
 from sonic_bloom.bridge.events import MusicEvent
 from sonic_bloom.bridge.scripting_bridge import MusicAppError
-from sonic_bloom.cli.display import stream_response, print_status, PLAYBACK_TOOLS
+from sonic_bloom.cli.display import stream_response, print_status
+from sonic_bloom.history import record_play
 
 SHORTCUTS = {
     "p": "play_pause",
@@ -65,13 +66,14 @@ class SonicBloomCLI:
 
             self.console.print()
             try:
-                response_text, tools_used, playback_track = stream_response(self.console, self.agent, user_input)
+                response_text, _, playback_track = stream_response(self.console, self.agent, user_input)
             except Exception as e:
                 self.console.print(f"  [red]Error: {e}[/]")
                 self.console.print()
                 continue
             self.console.print()
             if playback_track:
+                record_play(playback_track)
                 print_status(self.console, track_data=playback_track)
                 self.console.print()
 

@@ -123,12 +123,17 @@ def search_and_play(query: str) -> dict:
 
 @tool(
     description="Play a track from the iTunes/Apple Music store by its store ID.",
-    params={"store_id": {"type": "string", "description": "The iTunes/catalog store ID."}},
+    params={
+        "store_id": {"type": "string", "description": "The iTunes/catalog store ID."},
+        "name": {"type": "string", "description": "Track name (for display)."},
+        "artist": {"type": "string", "description": "Artist name (for display)."},
+        "album": {"type": "string", "description": "Album name (for display)."},
+    },
     required=["store_id"],
 )
-def play_from_itunes(store_id: str) -> dict:
+def play_from_itunes(store_id: str, name: str = "", artist: str = "", album: str = "") -> dict:
     play_store_track(store_id)
     track = get_music().current_track()
     if track:
         return {"status": "playing", "track": slim_track(track)}
-    return {"status": "playing", "store_id": store_id}
+    return {"status": "playing", "track": {"name": name, "artist": artist, "album": album}}

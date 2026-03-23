@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from sonic_bloom.bridge import get_music
+from sonic_bloom.history import recent_plays
 from sonic_bloom.tools import tool, slim_track
 
 
@@ -39,4 +40,9 @@ def get_library_stats() -> dict:
 )
 def recently_played(limit: int = 10) -> dict:
     tracks = get_music().recently_played(limit=limit)
-    return {"tracks": [slim_track(t) for t in tracks]}
+    if tracks:
+        return {"tracks": [slim_track(t) for t in tracks]}
+    history = recent_plays(limit=limit)
+    if history:
+        return {"tracks": history, "source": "app_history"}
+    return {"tracks": []}
